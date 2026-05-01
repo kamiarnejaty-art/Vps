@@ -7,16 +7,16 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-    - name: Install tools
+    - name: نصب ابزارها
       run: sudo apt update && sudo apt install -y unzip curl
 
-    - name: Download V2Ray
+    - name: دانلود V2Ray
       run: |
         curl -L -o v2ray.zip https://github.com/v2fly/v2ray-core/releases/latest/download/v2ray-linux-64.zip
         unzip v2ray.zip
         chmod +x v2ray v2ctl
 
-    - name: Write config
+    - name: ساخت کانفیگ
       run: |
         cat > config.json <<EOF
         {
@@ -34,12 +34,20 @@ jobs:
         }
         EOF
 
-    - name: Run V2Ray
+    - name: اجرای V2Ray با screen
       run: |
-        ./v2ray run -c config.json &
-        sleep 3
-        echo "✅ V2Ray running on port 18080"
+        sudo apt install -y screen
+        screen -dmS v2ray ./v2ray run -c config.json
+        sleep 5
+        echo "✅ V2Ray در حال اجراست روی پورت 18080"
+        curl -s http://localhost:18080 || echo "V2Ray در حال اجراست"
+
+    - name: نمایش IP
+      run: |
+        IP=$(curl -s ifconfig.me)
+        echo "IP سرور: $IP"
+        echo "پورت: 18080"
         echo "UUID: b831381d-6324-4d53-ad4f-8cda48b30811"
 
-    - name: Keep alive
+    - name: نگه داشتن اکشن (6 ساعت)
       run: sleep 6h
