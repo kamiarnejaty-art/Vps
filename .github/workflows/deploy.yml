@@ -1,0 +1,41 @@
+name: Deploy V2Ray
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install V2Ray
+      run: |
+        bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
+        
+    - name: Config V2Ray
+      run: |
+        sudo tee /usr/local/etc/v2ray/config.json > /dev/null <<EOF
+        {
+          "inbounds": [{
+            "port": 8080,
+            "protocol": "vmess",
+            "settings": {
+              "clients": [{"id": "b831381d-6324-4d53-ad4f-8cda48b30811", "alterId": 0}]
+            }
+          }],
+          "outbounds": [{"protocol": "freedom"}]
+        }
+        EOF
+        
+    - name: Start V2Ray
+      run: |
+        sudo systemctl start v2ray
+        sudo systemctl enable v2ray
+        echo "::set-output name=ip::$(curl -s ifconfig.me)"
+        
+    - name: Keep Alive
+      run: |
+        sleep 360000
