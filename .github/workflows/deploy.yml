@@ -2,28 +2,26 @@ name: V2Ray
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */6 * * *'
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup
+    - name: Install tools
+      run: sudo apt update && sudo apt install -y unzip curl
+
+    - name: Download V2Ray
       run: |
-        wget https://github.com/v2fly/v2ray-core/releases/latest/download/v2ray-linux-64.zip
-        unzip v2ray-linux-64.zip
+        curl -L -o v2ray.zip https://github.com/v2fly/v2ray-core/releases/latest/download/v2ray-linux-64.zip
+        unzip v2ray.zip
         chmod +x v2ray v2ctl
-        mkdir -p ~/.v2ray
-        
-    - name: Config
+
+    - name: Write config
       run: |
         cat > config.json <<EOF
         {
           "inbounds": [{
-            "port": 10086,
+            "port": 18080,
             "protocol": "vmess",
             "settings": {
               "clients": [{
@@ -35,13 +33,13 @@ jobs:
           "outbounds": [{"protocol": "freedom"}]
         }
         EOF
-        
-    - name: Run
+
+    - name: Run V2Ray
       run: |
         ./v2ray run -c config.json &
         sleep 3
-        curl -s http://localhost:10086/info
-        echo "Server running on port 10086"
-        
-    - name: Keep
+        echo "✅ V2Ray running on port 18080"
+        echo "UUID: b831381d-6324-4d53-ad4f-8cda48b30811"
+
+    - name: Keep alive
       run: sleep 6h
