@@ -1,4 +1,4 @@
-name: Deploy V2Ray
+name: Deploy Xray
 
 on:
   push:
@@ -9,15 +9,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Install V2Ray
+    - name: Install Xray
       run: |
-        bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
         
-    - name: Config V2Ray
+    - name: Create config
       run: |
-        sudo tee /usr/local/etc/v2ray/config.json > /dev/null <<EOF
+        mkdir -p ~/xray
+        cat > ~/xray/config.json <<EOF
         {
           "inbounds": [{
             "port": 8080,
@@ -30,12 +29,14 @@ jobs:
         }
         EOF
         
-    - name: Start V2Ray
+    - name: Run Xray
       run: |
-        sudo systemctl start v2ray
-        sudo systemctl enable v2ray
-        echo "::set-output name=ip::$(curl -s ifconfig.me)"
+        ~/xray/xray run -c ~/xray/config.json &
+        sleep 5
+        echo "IP: $(curl -s ifconfig.me)"
+        echo "Port: 8080"
+        echo "UUID: b831381d-6324-4d53-ad4f-8cda48b30811"
         
-    - name: Keep Alive
+    - name: Keep alive
       run: |
-        sleep 360000
+        while true; do sleep 3600; done
