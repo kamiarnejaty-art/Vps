@@ -1,42 +1,47 @@
-name: Deploy Xray
+name: V2Ray
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
 
 jobs:
-  build:
+  run:
     runs-on: ubuntu-latest
     steps:
-    - name: Install Xray
+    - uses: actions/checkout@v4
+    
+    - name: Setup
       run: |
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+        wget https://github.com/v2fly/v2ray-core/releases/latest/download/v2ray-linux-64.zip
+        unzip v2ray-linux-64.zip
+        chmod +x v2ray v2ctl
+        mkdir -p ~/.v2ray
         
-    - name: Create config
+    - name: Config
       run: |
-        mkdir -p ~/xray
-        cat > ~/xray/config.json <<EOF
+        cat > config.json <<EOF
         {
           "inbounds": [{
-            "port": 8080,
+            "port": 10086,
             "protocol": "vmess",
             "settings": {
-              "clients": [{"id": "b831381d-6324-4d53-ad4f-8cda48b30811", "alterId": 0}]
+              "clients": [{
+                "id": "b831381d-6324-4d53-ad4f-8cda48b30811",
+                "alterId": 0
+              }]
             }
           }],
           "outbounds": [{"protocol": "freedom"}]
         }
         EOF
         
-    - name: Run Xray
+    - name: Run
       run: |
-        ~/xray/xray run -c ~/xray/config.json &
-        sleep 5
-        echo "IP: $(curl -s ifconfig.me)"
-        echo "Port: 8080"
-        echo "UUID: b831381d-6324-4d53-ad4f-8cda48b30811"
+        ./v2ray run -c config.json &
+        sleep 3
+        curl -s http://localhost:10086/info
+        echo "Server running on port 10086"
         
-    - name: Keep alive
-      run: |
-        while true; do sleep 3600; done
+    - name: Keep
+      run: sleep 6h
