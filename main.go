@@ -3,6 +3,7 @@ package main
 import (
     "context"
     "log"
+    "strings"
     "os"
     "os/signal"
     "syscall"
@@ -11,40 +12,40 @@ import (
 )
 
 func main() {
-    // توکن ربات خود را وارد کنید
     token := "BEHFJF0YAIALQLLOIEKEEMMOFWIJHEGGLPPEHZPXDPABVDUABKUXBJNAOOCFYHXL"
 
-    // ایجاد کلاینت جدید
     bot := ParsRubika.NewClient(token)
 
-    // هندلر برای پیام‌های متنی
+    // هندلر پیام‌ها
     bot.OnMessageUpdates(func(ctx context.Context, update *ParsRubika.Update) error {
         if update.NewMessage != nil && update.NewMessage.Text != "" {
-            text := update.NewMessage.Text
+            text := strings.TrimSpace(update.NewMessage.Text)
             
             if text == "/start" {
-                _, err := bot.SendMessage(ctx, &ParsRubika.SendMessageRequest{
+                bot.SendMessage(ctx, &ParsRubika.SendMessageRequest{
                     ChatID: update.ChatID,
-                    Text:   "سلام! 🤖\nربات من با موفقیت در Go روشن شد!",
+                    Text:   "سلام! 🌟\nربات من با Go روشن شد!",
                 })
-                return err
+            } else if strings.HasPrefix(text, "/") {
+                bot.SendMessage(ctx, &ParsRubika.SendMessageRequest{
+                    ChatID: update.ChatID,
+                    Text:   "دستور نامعتبر!\nبرای راهنما /start رو بفرست.",
+                })
             } else {
-                _, err := bot.SendMessage(ctx, &ParsRubika.SendMessageRequest{
+                bot.SendMessage(ctx, &ParsRubika.SendMessageRequest{
                     ChatID: update.ChatID,
                     Text:   "شما گفتید: " + text,
                 })
-                return err
             }
         }
         return nil
     })
 
-    // تنظیم قطع شدن برنامه با سیگنال
     ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
     defer stop()
 
-    log.Println("🤖 ربات Go در حال اجراست...")
+    log.Println("🤖 ربات روبیکا با Go روشن شد!")
     if err := bot.Run(ctx); err != nil {
-        log.Fatal("خطا در اجرای ربات:", err)
+        log.Fatal("خطا:", err)
     }
 }
