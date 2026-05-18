@@ -1,28 +1,20 @@
-name: Go Rubika Bot
+name: Register Rubika Webhook
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  build:
+  register:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
-
-    - name: Install dependencies
-      run: |
-        go mod download
-        go get github.com/AbolfazlZarei-dev/ParsRubika-bot-go/v2
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Run
-      run: go run main.go
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install
+        run: pip install requests
+      - name: Register Webhook
+        run: python webhook_register.py https://your-app.onrender.com/webhook
